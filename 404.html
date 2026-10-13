@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#070A11">
+<title>AI Scientist</title>
+<!-- The one address people are given. On the campus network it opens the lab server;
+     anywhere else, the public site. The address is checked by the cloud backend. -->
+<style>
+  :root{color-scheme:dark}
+  html,body{margin:0;height:100%;background:radial-gradient(900px 420px at 50% 30%,rgba(61,107,240,.22),rgba(7,10,17,0) 70%),#070A11;color:#EEF2F9;
+    font-family:'IBM Plex Sans','Noto Sans SC',-apple-system,BlinkMacSystemFont,'PingFang SC','Segoe UI',sans-serif}
+  main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;box-sizing:border-box;text-align:center}
+  .logo{width:46px;height:46px;animation:p 1.6s ease-in-out infinite}
+  @keyframes p{50%{opacity:.45}}
+  @media (prefers-reduced-motion:reduce){.logo{animation:none}}
+  p{margin:0;color:#8B94A6;font-size:14px}
+  .links{display:none;gap:12px;flex-wrap:wrap;justify-content:center}
+  .links.on{display:flex}
+  a{color:#EEF2F9;text-decoration:none;font-size:14px;padding:9px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.18)}
+  a:hover{border-color:#7DA2FF;background:rgba(61,107,240,.15)}
+</style>
+</head>
+<body>
+<main>
+  <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="#7DA2FF" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="5" r="2.4"/><circle cx="5.5" cy="18" r="2.4"/><circle cx="18.5" cy="18" r="2.4"/><path d="M12 7.4v4.2M10.6 13.4 7 15.8M13.4 13.4 17 15.8"/></svg>
+  <p id="say">正在进入 AI Scientist</p>
+  <div class="links" id="links">
+    <a id="lab" href="https://ais-lab.liuguangrui.top/">校内入口</a>
+    <a id="pub" href="https://liuguangrui.top/ai-scientist/">校外入口</a>
+  </div>
+</main>
+<script>
+(function () {
+  var LAB = 'https://ais-lab.liuguangrui.top';
+  var PUB = 'https://liuguangrui.top/ai-scientist';
+  var API = 'https://cjwxxomnluttcvwvukmh.supabase.co/rest/v1/rpc/on_campus';
+  var KEY = 'sb_publishable_A3txmdxbtwodVuS7X3Pt2A_6iAGqzgw';
+  // keep the page and its query, so a shared link such as /login?invite=… still lands on that page
+  var rest = location.pathname + location.search + location.hash;
+  var lab = document.getElementById('lab'), pub = document.getElementById('pub');
+  lab.href = LAB + rest; pub.href = PUB + rest;
+  var done = false;
+  function go(url) { if (!done) { done = true; location.replace(url); } }
+  // if the check cannot answer, offer both ways in rather than guessing
+  var slow = setTimeout(function () {
+    document.getElementById('say').textContent = '无法判断所在网络，请选择入口';
+    document.getElementById('links').className = 'links on';
+  }, 4000);
+  if (!window.fetch) { clearTimeout(slow); document.getElementById('links').className = 'links on'; return; }
+  fetch(API, { method: 'POST', headers: { apikey: KEY, 'content-type': 'application/json' }, body: '{}' })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (inside) { clearTimeout(slow); go((inside === true ? LAB : PUB) + rest); })
+    .catch(function () {
+      clearTimeout(slow);
+      document.getElementById('say').textContent = '无法判断所在网络，请选择入口';
+      document.getElementById('links').className = 'links on';
+    });
+})();
+</script>
+</body>
+</html>
